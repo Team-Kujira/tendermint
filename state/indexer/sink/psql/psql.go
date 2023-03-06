@@ -108,7 +108,6 @@ func insertEvents(dbtx *sql.Tx, blockID, txID uint32, evts []abci.Event) error {
 
 		eid, err := queryWithID(dbtx, `
 INSERT INTO `+tableEvents+` (block_id, tx_id, type) VALUES ($1, $2, $3)
-  ON CONFLICT DO UPDATE
   RETURNING rowid;
 `, blockID, txIDArg, evt.Type)
 		if err != nil {
@@ -124,7 +123,7 @@ INSERT INTO `+tableEvents+` (block_id, tx_id, type) VALUES ($1, $2, $3)
 			if _, err := dbtx.Exec(`
 INSERT INTO `+tableAttributes+` (tx_id, event_id, idx, key, composite_key, value)
   VALUES ($1, $2, $3, $4, $5, $6)
-  ON CONFLICT DO UPDATE;
+  ON CONFLICT DO NOTHING;
 `, txIDArg, eid, idx, attr.Key, compositeKey, attr.Value); err != nil {
 				return err
 			}
